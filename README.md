@@ -56,14 +56,15 @@ npm run dev
 
 ## AI 论文总结
 
-复制 `.env.example` 为 `.env` 后，填入 OpenAI API Key：
+复制 `.env.example` 为 `.env` 后，填入通义千问/阿里云百炼 API Key：
 
 ```bash
-OPENAI_API_KEY="sk-..."
-OPENAI_MODEL="gpt-5-mini"
+API_KEY="sk-..."
+QWEN_MODEL="qwen3-max"
+QWEN_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1"
 ```
 
-没有配置 `OPENAI_API_KEY` 时，页面会提示无法调用 OpenAI API，不会自动填充笔记内容。
+没有配置 `API_KEY` 时，页面会提示无法调用通义千问 API，不会自动填充笔记内容。
 
 ## 数据库
 
