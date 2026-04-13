@@ -1,0 +1,7 @@
+{
+  "topic": "RAG 系统从检索增强走向质量评估",
+  "papers": "RAG、Self-RAG、RAGAS",
+  "projects": "LlamaIndex、Milvus、Ragas",
+  "todos": "用一个小型中文知识库跑 hybrid search + rerank，并记录失败样例。",
+  "notes": "组会时重点讲清楚：为什么只看生成答案不够，还要评估检索、引用和失败样例。"
+}
