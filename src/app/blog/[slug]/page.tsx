@@ -2,14 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Tag } from "@/components/tag";
-import { getBlogPosts, getPostBySlugFromStore } from "@/lib/content-store";
+import { getPostBySlugFromStore } from "@/lib/content-store";
 
 export const dynamic = "force-dynamic";
-
-export async function generateStaticParams() {
-  const blogPosts = await getBlogPosts();
-  return blogPosts.map((post) => ({ slug: post.slug }));
-}
 
 export async function generateMetadata({
   params

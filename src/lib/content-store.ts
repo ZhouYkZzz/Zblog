@@ -111,7 +111,15 @@ export async function getBlogPosts() {
 
 export async function getPostBySlugFromStore(slug: string) {
   const posts = await getBlogPosts();
-  return posts.find((post) => post.slug === slug);
+  const candidates = new Set([slug]);
+
+  try {
+    candidates.add(decodeURIComponent(slug));
+  } catch {
+    // Keep the original slug when it is not URI encoded.
+  }
+
+  return posts.find((post) => candidates.has(post.slug) || candidates.has(encodeURIComponent(post.slug)));
 }
 
 export async function createBlogPost(input: Partial<BlogPost>) {

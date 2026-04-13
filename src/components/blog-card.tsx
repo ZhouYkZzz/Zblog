@@ -12,7 +12,7 @@ export function BlogCard({ post }: { post: BlogPost }) {
           <span className="text-xs font-semibold text-ink/55">{post.readingMinutes} min</span>
         </div>
         <div className="space-y-2">
-          <Link href={`/blog/${post.slug}`} className="block text-xl font-black leading-tight text-ink hover:text-pine">
+          <Link href={`/blog/${encodeURIComponent(post.slug)}`} className="block text-xl font-black leading-tight text-ink hover:text-pine">
             {post.title}
           </Link>
           <p className="line-clamp-3 text-sm leading-6 text-ink/68">{post.summary}</p>
