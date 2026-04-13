@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import type { Paper, PaperNote } from "@/lib/types";
+import type { PaperNote } from "@/lib/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -34,25 +34,14 @@ function parseNote(text: string): PaperNote {
   };
 }
 
-function fallbackNote(paper: Paper): PaperNote {
-  return {
-    researchQuestion: `这篇论文主要讨论：${paper.title}`,
-    method: "请结合论文全文补充核心方法；当前仅基于标题和摘要生成初稿。",
-    result: "请阅读实验部分后补充关键指标、数据集和对比方法。",
-    reproducibleCode: paper.pdfUrl ? `先阅读 PDF：${paper.pdfUrl}` : "暂未发现代码链接，可从论文页面继续查找。",
-    takeaway: paper.abstract.slice(0, 120) || "这篇论文可能与当前研究方向相关，建议补充个人判断。"
-  };
-}
-
 export async function POST(request: Request) {
-  const paper = (await request.json()) as Paper;
+  const paper = await request.json();
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
       {
-        message: "未配置 OPENAI_API_KEY，无法调用 OpenAI API。",
-        note: fallbackNote(paper)
+        message: "未配置 OPENAI_API_KEY，无法调用 OpenAI API。请先在 .env 中填写 OPENAI_API_KEY。"
       },
       { status: 400 }
     );
@@ -83,8 +72,7 @@ export async function POST(request: Request) {
   if (!response.ok) {
     return NextResponse.json(
       {
-        message: `OpenAI API request failed: ${response.status}`,
-        note: fallbackNote(paper)
+        message: `OpenAI API request failed: ${response.status}`
       },
       { status: 502 }
     );
@@ -97,10 +85,9 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json(
       {
-        message: "AI 返回内容解析失败，已提供本地初稿。",
-        note: fallbackNote(paper)
+        message: "AI 返回内容解析失败，请稍后重试或手动填写。"
       },
-      { status: 200 }
+      { status: 502 }
     );
   }
 }

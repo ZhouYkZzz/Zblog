@@ -25,6 +25,11 @@ export function PaperLibrary({
     takeaway: ""
   });
 
+  const editingPaper = useMemo(
+    () => papers.find((paper) => paper.id === editingId) ?? null,
+    [editingId, papers]
+  );
+
   const filteredPapers = useMemo(() => {
     const categoryFiltered =
       activeCategory === "全部" ? papers : papers.filter((paper) => paper.category === activeCategory);
@@ -100,10 +105,15 @@ export function PaperLibrary({
     });
     const data = (await response.json()) as { note?: PaperNote; message?: string };
 
+    if (!response.ok) {
+      setStatus(data.message ?? "AI 生成失败，请检查 API Key 或稍后再试。");
+      return;
+    }
+
     if (data.note) {
       setNoteDraft(data.note);
       setEditingId(paper.id);
-      setStatus(response.ok ? "AI 初稿已生成，检查后保存即可。" : data.message ?? "已生成本地初稿。");
+      setStatus("AI 初稿已生成，检查后保存即可。");
       return;
     }
 
@@ -120,89 +130,100 @@ export function PaperLibrary({
       </div>
       <div className="grid auto-rows-fr gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filteredPapers.map((paper) => (
-          <div key={paper.id} className="space-y-4">
-            <PaperCard
-              paper={paper}
-              action={
-                <div className="grid gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleFavorite(paper)}
-                    className={`button-link w-full ${
-                      paper.isFavorite ? "border border-coral/30 bg-coral/10 text-coral" : "button-primary"
-                    }`}
-                  >
-                    {paper.isFavorite ? "取消收藏" : "收藏论文"}
-                  </button>
-                  <button type="button" onClick={() => startEditNote(paper)} className="button-link button-secondary w-full">
-                    编辑论文笔记
-                  </button>
-                </div>
-              }
-            />
-            {editingId === paper.id ? (
-              <div className="card p-5">
-                <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
-                  <h3 className="text-lg font-black text-ink">编辑论文笔记</h3>
-                  <button type="button" onClick={() => generateNote(paper)} className="button-link button-secondary">
-                    AI 生成初稿
-                  </button>
-                </div>
-                <div className="mt-4 grid gap-3">
-                  <label className="grid gap-2 text-sm font-bold text-ink">
-                    研究问题
-                    <textarea
-                      value={noteDraft.researchQuestion}
-                      onChange={(event) => updateNoteField("researchQuestion", event.target.value)}
-                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm font-bold text-ink">
-                    核心方法
-                    <textarea
-                      value={noteDraft.method}
-                      onChange={(event) => updateNoteField("method", event.target.value)}
-                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm font-bold text-ink">
-                    实验结论
-                    <textarea
-                      value={noteDraft.result}
-                      onChange={(event) => updateNoteField("result", event.target.value)}
-                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm font-bold text-ink">
-                    可复现代码
-                    <textarea
-                      value={noteDraft.reproducibleCode}
-                      onChange={(event) => updateNoteField("reproducibleCode", event.target.value)}
-                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm font-bold text-ink">
-                    我能借鉴
-                    <textarea
-                      value={noteDraft.takeaway}
-                      onChange={(event) => updateNoteField("takeaway", event.target.value)}
-                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
-                    />
-                  </label>
-                  <div className="grid gap-2 md:grid-cols-2">
-                    <button type="button" onClick={() => saveNote(paper)} className="button-link button-primary">
-                      保存笔记
-                    </button>
-                    <button type="button" onClick={() => setEditingId(null)} className="button-link button-secondary">
-                      收起
-                    </button>
-                  </div>
-                </div>
+          <PaperCard
+            key={paper.id}
+            paper={paper}
+            action={
+              <div className="grid gap-2">
+                <button
+                  type="button"
+                  onClick={() => toggleFavorite(paper)}
+                  className={`button-link w-full ${
+                    paper.isFavorite ? "border border-coral/30 bg-coral/10 text-coral" : "button-primary"
+                  }`}
+                >
+                  {paper.isFavorite ? "取消收藏" : "收藏论文"}
+                </button>
+                <button type="button" onClick={() => startEditNote(paper)} className="button-link button-secondary w-full">
+                  编辑论文笔记
+                </button>
               </div>
-            ) : null}
-          </div>
+            }
+          />
         ))}
       </div>
+      {editingPaper ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4 backdrop-blur-sm">
+          <div className="max-h-[86vh] w-full max-w-4xl overflow-y-auto rounded-[8px] border border-line bg-cloud shadow-soft">
+            <div className="sticky top-0 flex flex-col justify-between gap-4 border-b border-line bg-cloud p-5 md:flex-row md:items-start">
+              <div>
+                <p className="text-sm font-black uppercase text-coral">Paper Note</p>
+                <h3 className="mt-1 text-2xl font-black leading-tight text-ink">编辑论文笔记</h3>
+                <p className="mt-2 line-clamp-2 text-sm leading-6 text-ink/64">{editingPaper.title}</p>
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <button type="button" onClick={() => generateNote(editingPaper)} className="button-link button-secondary">
+                  AI 生成初稿
+                </button>
+                <button type="button" onClick={() => setEditingId(null)} className="button-link button-secondary">
+                  关闭
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 p-5 md:grid-cols-2">
+              <label className="grid gap-2 text-sm font-bold text-ink">
+                研究问题
+                <textarea
+                  value={noteDraft.researchQuestion}
+                  onChange={(event) => updateNoteField("researchQuestion", event.target.value)}
+                  className="min-h-28 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-ink">
+                核心方法
+                <textarea
+                  value={noteDraft.method}
+                  onChange={(event) => updateNoteField("method", event.target.value)}
+                  className="min-h-28 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-ink">
+                实验结论
+                <textarea
+                  value={noteDraft.result}
+                  onChange={(event) => updateNoteField("result", event.target.value)}
+                  className="min-h-28 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-ink">
+                可复现代码
+                <textarea
+                  value={noteDraft.reproducibleCode}
+                  onChange={(event) => updateNoteField("reproducibleCode", event.target.value)}
+                  className="min-h-28 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                />
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-ink md:col-span-2">
+                我能借鉴
+                <textarea
+                  value={noteDraft.takeaway}
+                  onChange={(event) => updateNoteField("takeaway", event.target.value)}
+                  className="min-h-28 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                />
+              </label>
+              <div className="grid gap-2 md:col-span-2 md:grid-cols-2">
+                <button type="button" onClick={() => saveNote(editingPaper)} className="button-link button-primary">
+                  保存笔记
+                </button>
+                <button type="button" onClick={() => setEditingId(null)} className="button-link button-secondary">
+                  取消
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {filteredPapers.length === 0 ? (
         <div className="card p-6 text-sm leading-6 text-ink/70">
           当前分类暂无论文。可以先切回“全部”，或者在工作台调整论文偏好。
