@@ -11,6 +11,7 @@
 - 工作台：文章管理、论文收藏、订阅源和组会草稿入口。
 - 网页编辑：在 `/dashboard/blogs` 新增、编辑、删除博客，在 `/dashboard/meeting` 编辑本周组会草稿。
 - 论文管理：在 `/papers` 收藏/取消收藏论文，在 `/dashboard/papers` 管理论文偏好。
+- 论文笔记：在 `/papers` 或 `/dashboard/papers` 编辑论文笔记，也可以配置 OpenAI API 生成初稿。
 - 首页管理：在 `/dashboard/home` 修改首页右侧三块提示内容。
 
 ## 开发
@@ -33,7 +34,10 @@ npm run dev
 - `GET /api/weekly-draft`
 - `PUT /api/weekly-draft`
 - `GET /api/papers/library`
+- `POST /api/papers/library`
 - `PATCH /api/papers/library/[id]`
+- `PUT /api/papers/library/[id]/note`
+- `POST /api/papers/summarize`
 - `GET /api/paper-preferences`
 - `PUT /api/paper-preferences`
 - `GET /api/home-focus`
@@ -49,6 +53,17 @@ npm run dev
 - 论文收藏保存在 `data/papers.json`
 - 论文偏好保存在 `data/paper-preferences.json`
 - 首页三块内容保存在 `data/home-focus.json`
+
+## AI 论文总结
+
+复制 `.env.example` 为 `.env` 后，填入 OpenAI API Key：
+
+```bash
+OPENAI_API_KEY="sk-..."
+OPENAI_MODEL="gpt-4.1-mini"
+```
+
+没有配置 `OPENAI_API_KEY` 时，页面会提示无法调用 OpenAI API，并提供一个本地初稿占位，方便继续手动编辑。
 
 ## 数据库
 

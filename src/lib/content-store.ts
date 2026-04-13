@@ -188,6 +188,31 @@ export async function updatePaperFavorite(id: string, isFavorite: boolean) {
   return nextPaper;
 }
 
+export async function updatePaperNote(id: string, note: Paper["note"]) {
+  const papers = await getPapers();
+  const target = papers.find((paper) => paper.id === id);
+
+  if (!target) {
+    return null;
+  }
+
+  const nextPaper: Paper = {
+    ...target,
+    note: note
+      ? {
+          researchQuestion: note.researchQuestion?.trim() || "",
+          method: note.method?.trim() || "",
+          result: note.result?.trim() || "",
+          reproducibleCode: note.reproducibleCode?.trim() || "",
+          takeaway: note.takeaway?.trim() || ""
+        }
+      : undefined
+  };
+  const nextPapers = papers.map((paper) => (paper.id === id ? nextPaper : paper));
+  await writeJsonFile(papersFile, nextPapers);
+  return nextPaper;
+}
+
 function normalizePaper(input: Partial<Paper>): Paper {
   const title = input.title?.trim() || "Untitled Paper";
   const id = input.id?.trim() || input.externalId?.trim() || slugify(title);

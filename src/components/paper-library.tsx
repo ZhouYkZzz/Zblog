@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { Paper, PaperPreferences } from "@/lib/types";
+import type { Paper, PaperNote, PaperPreferences } from "@/lib/types";
 import { paperCategories } from "@/lib/data";
 import { PaperCard } from "./paper-card";
 
@@ -16,6 +16,14 @@ export function PaperLibrary({
 }) {
   const [papers, setPapers] = useState(initialPapers);
   const [status, setStatus] = useState("点击论文卡片上的按钮即可收藏或取消收藏。");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [noteDraft, setNoteDraft] = useState<PaperNote>({
+    researchQuestion: "",
+    method: "",
+    result: "",
+    reproducibleCode: "",
+    takeaway: ""
+  });
 
   const filteredPapers = useMemo(() => {
     const categoryFiltered =
@@ -47,6 +55,61 @@ export function PaperLibrary({
     setStatus(data.paper.isFavorite ? "已加入论文收藏。" : "已取消收藏。");
   }
 
+  function startEditNote(paper: Paper) {
+    setEditingId(paper.id);
+    setNoteDraft(
+      paper.note ?? {
+        researchQuestion: "",
+        method: "",
+        result: "",
+        reproducibleCode: "",
+        takeaway: ""
+      }
+    );
+    setStatus(`正在编辑《${paper.title}》的论文笔记。`);
+  }
+
+  function updateNoteField<K extends keyof PaperNote>(key: K, value: PaperNote[K]) {
+    setNoteDraft((current) => ({ ...current, [key]: value }));
+  }
+
+  async function saveNote(paper: Paper) {
+    const response = await fetch(`/api/papers/library/${encodeURIComponent(paper.id)}/note`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ note: noteDraft })
+    });
+
+    if (!response.ok) {
+      setStatus("论文笔记保存失败，请稍后再试。");
+      return;
+    }
+
+    const data = (await response.json()) as { paper: Paper };
+    setPapers((current) => current.map((item) => (item.id === data.paper.id ? data.paper : item)));
+    setEditingId(null);
+    setStatus("论文笔记已保存。");
+  }
+
+  async function generateNote(paper: Paper) {
+    setStatus("正在生成论文笔记初稿...");
+    const response = await fetch("/api/papers/summarize", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(paper)
+    });
+    const data = (await response.json()) as { note?: PaperNote; message?: string };
+
+    if (data.note) {
+      setNoteDraft(data.note);
+      setEditingId(paper.id);
+      setStatus(response.ok ? "AI 初稿已生成，检查后保存即可。" : data.message ?? "已生成本地初稿。");
+      return;
+    }
+
+    setStatus(data.message ?? "AI 生成失败，请稍后再试。");
+  }
+
   return (
     <section className="space-y-5">
       <div className="card flex flex-col justify-between gap-3 p-4 md:flex-row md:items-center">
@@ -57,21 +120,87 @@ export function PaperLibrary({
       </div>
       <div className="grid auto-rows-fr gap-5 md:grid-cols-2 xl:grid-cols-3">
         {filteredPapers.map((paper) => (
-          <PaperCard
-            key={paper.id}
-            paper={paper}
-            action={
-              <button
-                type="button"
-                onClick={() => toggleFavorite(paper)}
-                className={`button-link w-full ${
-                  paper.isFavorite ? "border border-coral/30 bg-coral/10 text-coral" : "button-primary"
-                }`}
-              >
-                {paper.isFavorite ? "取消收藏" : "收藏论文"}
-              </button>
-            }
-          />
+          <div key={paper.id} className="space-y-4">
+            <PaperCard
+              paper={paper}
+              action={
+                <div className="grid gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(paper)}
+                    className={`button-link w-full ${
+                      paper.isFavorite ? "border border-coral/30 bg-coral/10 text-coral" : "button-primary"
+                    }`}
+                  >
+                    {paper.isFavorite ? "取消收藏" : "收藏论文"}
+                  </button>
+                  <button type="button" onClick={() => startEditNote(paper)} className="button-link button-secondary w-full">
+                    编辑论文笔记
+                  </button>
+                </div>
+              }
+            />
+            {editingId === paper.id ? (
+              <div className="card p-5">
+                <div className="flex flex-col justify-between gap-3 md:flex-row md:items-center">
+                  <h3 className="text-lg font-black text-ink">编辑论文笔记</h3>
+                  <button type="button" onClick={() => generateNote(paper)} className="button-link button-secondary">
+                    AI 生成初稿
+                  </button>
+                </div>
+                <div className="mt-4 grid gap-3">
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    研究问题
+                    <textarea
+                      value={noteDraft.researchQuestion}
+                      onChange={(event) => updateNoteField("researchQuestion", event.target.value)}
+                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    核心方法
+                    <textarea
+                      value={noteDraft.method}
+                      onChange={(event) => updateNoteField("method", event.target.value)}
+                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    实验结论
+                    <textarea
+                      value={noteDraft.result}
+                      onChange={(event) => updateNoteField("result", event.target.value)}
+                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    可复现代码
+                    <textarea
+                      value={noteDraft.reproducibleCode}
+                      onChange={(event) => updateNoteField("reproducibleCode", event.target.value)}
+                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                    />
+                  </label>
+                  <label className="grid gap-2 text-sm font-bold text-ink">
+                    我能借鉴
+                    <textarea
+                      value={noteDraft.takeaway}
+                      onChange={(event) => updateNoteField("takeaway", event.target.value)}
+                      className="min-h-20 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-6 outline-none focus:border-pine"
+                    />
+                  </label>
+                  <div className="grid gap-2 md:grid-cols-2">
+                    <button type="button" onClick={() => saveNote(paper)} className="button-link button-primary">
+                      保存笔记
+                    </button>
+                    <button type="button" onClick={() => setEditingId(null)} className="button-link button-secondary">
+                      收起
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
         ))}
       </div>
       {filteredPapers.length === 0 ? (

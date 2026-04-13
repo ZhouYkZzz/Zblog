@@ -23,13 +23,12 @@ export default async function Home() {
             <div className="flex flex-col justify-between gap-8 p-7 md:p-9">
               <div className="space-y-5">
                 <div className="flex flex-wrap gap-2">
-                  <Tag tone="green">HDÜ CS</Tag>
-                  <Tag tone="red">AI 应用 / RAG</Tag>
+                  <Tag tone="green">HDU CS</Tag>
                   <Tag tone="gold">研究生工作台</Tag>
                 </div>
                 <div className="space-y-4">
                   <h1 className="text-4xl font-black leading-tight text-ink md:text-5xl">
-                    把论文、项目、实验和博客放进同一个节奏。
+                    整合论文，项目和组会灵感的个人博客。
                   </h1>
                   <p className="max-w-2xl text-base leading-8 text-ink/70">
                     面向杭州电子科技大学计算机技术研究生阶段，持续追踪 AI 应用、RAG、Agent、向量数据库和多模态方向。
