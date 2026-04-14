@@ -640,7 +640,7 @@ export function AiAssistant() {
         type="button"
         onClick={() => setOpen((current) => !current)}
         aria-label="打开 AI 小助手"
-        className={`group rounded-[8px] border border-line bg-cloud/90 p-2 shadow-[0_12px_35px_rgba(24,33,31,0.14)] backdrop-blur transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-white ${
+        className={`group rounded-[8px] bg-transparent p-0 transition-all duration-300 ease-out hover:-translate-y-1 ${
           open ? "pointer-events-none translate-y-3 scale-75 opacity-0" : "translate-y-0 scale-100 opacity-100"
         }`}
       >
