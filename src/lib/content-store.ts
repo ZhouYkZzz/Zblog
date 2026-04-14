@@ -85,7 +85,7 @@ function uniqueSlug(title: string, posts: BlogPost[], currentSlug?: string) {
 
 function normalizePost(input: Partial<BlogPost>, posts: BlogPost[], currentSlug?: string): BlogPost {
   const title = input.title?.trim() || "未命名文章";
-  const content = input.content?.trim() || "这里开始写正文。";
+  const content = input.content?.replace(/^\n+|\n+$/g, "") || "这里开始写正文。";
   const words = content.replace(/\s+/g, "").length;
 
   return {
