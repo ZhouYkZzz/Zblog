@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { FormEvent, KeyboardEvent, ReactNode } from "react";
+import { AssistantAvatar } from "./assistant-avatar";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -264,6 +265,7 @@ export function AiAssistant() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const stoppedRef = useRef(false);
+  const avatarState = streaming ? "talking" : busy ? "thinking" : "idle";
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -486,10 +488,13 @@ export function AiAssistant() {
       {open ? (
         <section className="card flex h-[min(680px,calc(100vh-96px))] w-[min(430px,calc(100vw-40px))] flex-col overflow-hidden bg-white">
           <div className="flex items-start justify-between gap-4 border-b border-line p-4">
-            <div>
-              <p className="text-xs font-black uppercase text-coral">AI Assistant</p>
-              <h2 className="mt-1 text-xl font-black text-ink">ZBlog 小助手</h2>
-              <p className="mt-1 text-xs leading-5 text-ink/58">{status}</p>
+            <div className="flex items-start gap-3">
+              <AssistantAvatar state={avatarState} size="sm" showBubble />
+              <div>
+                <p className="text-xs font-black uppercase text-coral">AI Assistant</p>
+                <h2 className="mt-1 text-xl font-black text-ink">ZBlog 小助手</h2>
+                <p className="mt-1 text-xs leading-5 text-ink/58">{status}</p>
+              </div>
             </div>
             <button
               type="button"
@@ -634,9 +639,12 @@ export function AiAssistant() {
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="rounded-[8px] border border-pine bg-pine px-4 py-3 text-sm font-black text-white shadow-[0_12px_35px_rgba(24,33,31,0.18)]"
+        className="flex items-center gap-2 rounded-[8px] border border-pine bg-pine py-2 pl-2 pr-4 text-sm font-black text-white shadow-[0_12px_35px_rgba(24,33,31,0.18)]"
       >
-        AI 小助手
+        <span className="rounded-[8px] bg-white/94 p-0.5">
+          <AssistantAvatar state={avatarState} size="sm" />
+        </span>
+        <span>AI 小助手</span>
       </button>
     </div>
   );
