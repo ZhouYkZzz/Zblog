@@ -96,15 +96,27 @@ function renderInlineMarkdown(text: string) {
 }
 
 function renderList(lines: string[], ordered: boolean, key: string) {
-  const ListTag = ordered ? "ol" : "ul";
+  if (ordered) {
+    const start = Number(lines[0]?.match(/^(\d+)\.\s+/)?.[1] ?? 1);
+
+    return (
+      <ol key={key} start={start} className="list-decimal space-y-1 pl-5">
+        {lines.map((line, index) => {
+          const orderedMatch = line.match(/^\d+\.\s+(.+)$/);
+          const content = orderedMatch?.[1] ?? line;
+
+          return <li key={`${key}-${index}`}>{renderInlineMarkdown(content)}</li>;
+        })}
+      </ol>
+    );
+  }
 
   return (
-    <ListTag key={key} className={`${ordered ? "list-decimal" : "list-disc"} space-y-1 pl-5`}>
+    <ul key={key} className="list-disc space-y-1 pl-5">
       {lines.map((line, index) => {
         const checklistMatch = line.match(/^[-*]\s+\[( |x|X)\]\s+(.+)$/);
-        const orderedMatch = line.match(/^\d+\.\s+(.+)$/);
         const bulletMatch = line.match(/^[-*]\s+(.+)$/);
-        const content = checklistMatch?.[2] ?? orderedMatch?.[1] ?? bulletMatch?.[1] ?? line;
+        const content = checklistMatch?.[2] ?? bulletMatch?.[1] ?? line;
 
         return (
           <li key={`${key}-${index}`} className={checklistMatch ? "list-none" : undefined}>
@@ -119,7 +131,7 @@ function renderList(lines: string[], ordered: boolean, key: string) {
           </li>
         );
       })}
-    </ListTag>
+    </ul>
   );
 }
 
