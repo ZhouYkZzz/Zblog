@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AiAssistant } from "@/components/ai-assistant";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
@@ -18,6 +19,7 @@ export default function RootLayout({
       <body>
         <SiteHeader />
         {children}
+        <AiAssistant />
         <SiteFooter />
       </body>
     </html>

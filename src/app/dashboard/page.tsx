@@ -47,8 +47,8 @@ export default async function DashboardPage() {
         <div className="card p-5">
           <div className="flex items-start justify-between gap-3">
             <p className="text-sm font-black text-coral">组会素材</p>
-            <Link href="/dashboard/home" className="text-xs font-black text-pine">
-              编辑首页
+            <Link href="/dashboard/meeting" className="text-xs font-black text-pine">
+              编辑草稿
             </Link>
           </div>
           <p className="mt-2 text-4xl font-black text-ink">1</p>

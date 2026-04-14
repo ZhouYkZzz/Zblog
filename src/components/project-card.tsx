@@ -3,7 +3,7 @@ import { Tag } from "./tag";
 
 const formatter = new Intl.NumberFormat("en", { notation: "compact" });
 
-export function ProjectCard({ project }: { project: TechProject }) {
+export function ProjectCard({ project, showTopics = true }: { project: TechProject; showTopics?: boolean }) {
   return (
     <article className="card flex h-full flex-col gap-4 p-5">
       <div className="flex items-start justify-between gap-3">
@@ -18,11 +18,13 @@ export function ProjectCard({ project }: { project: TechProject }) {
         </span>
       </div>
       <p className="line-clamp-3 text-sm leading-6 text-ink/68">{project.description}</p>
-      <div className="mt-auto flex flex-wrap gap-2">
-        {project.topics.slice(0, 4).map((topic) => (
-          <Tag key={topic}>{topic}</Tag>
-        ))}
-      </div>
+      {showTopics ? (
+        <div className="mt-auto flex flex-wrap gap-2">
+          {project.topics.slice(0, 4).map((topic) => (
+            <Tag key={topic}>{topic}</Tag>
+          ))}
+        </div>
+      ) : null}
     </article>
   );
 }

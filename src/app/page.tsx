@@ -3,21 +3,19 @@ import { BlogCard } from "@/components/blog-card";
 import { PaperCard } from "@/components/paper-card";
 import { ProjectCard } from "@/components/project-card";
 import { Tag } from "@/components/tag";
-import { getBlogPosts, getFavoritePapersFromStore, getHomeFocusBlocks, getPaperPreferences } from "@/lib/content-store";
-import { fallbackProjects, researchKeywords } from "@/lib/data";
+import { getBlogPosts, getFavoritePapersFromStore } from "@/lib/content-store";
+import { fallbackProjects } from "@/lib/data";
 
 export default async function Home() {
-  const [blogPosts, favoritePapers, focusBlocks, preferences] = await Promise.all([
+  const [blogPosts, favoritePapers] = await Promise.all([
     getBlogPosts(),
-    getFavoritePapersFromStore(),
-    getHomeFocusBlocks(),
-    getPaperPreferences()
+    getFavoritePapersFromStore()
   ]);
   const latestPosts = blogPosts.slice(0, 2);
 
   return (
     <main className="page-shell space-y-16 pt-10">
-      <section className="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+      <section>
         <div className="card overflow-hidden">
           <div className="grid min-h-[430px] gap-0 md:grid-cols-[1.15fr_0.85fr]">
             <div className="flex flex-col justify-between gap-8 p-7 md:p-9">
@@ -31,7 +29,7 @@ export default async function Home() {
                     整合论文，项目和组会灵感的个人博客。
                   </h1>
                   <p className="max-w-2xl text-base leading-8 text-ink/70">
-                    面向杭州电子科技大学计算机技术研究生阶段，持续追踪 AI 应用、RAG、Agent、向量数据库和多模态方向。
+                    面向杭州电子科技大学计算机技术研究生阶段，把论文阅读、项目实践和组会材料沉淀到同一个长期工作台里。
                   </p>
                 </div>
               </div>
@@ -53,23 +51,6 @@ export default async function Home() {
             </div>
           </div>
         </div>
-
-        <aside className="grid gap-4">
-          {focusBlocks.map((item) => (
-            <div key={item.title} className="card p-5">
-              <p className="text-sm font-black text-coral">{item.title}</p>
-              <p className="mt-2 text-sm leading-6 text-ink/70">{item.text}</p>
-            </div>
-          ))}
-        </aside>
-      </section>
-
-      <section className="grid gap-5 md:grid-cols-4">
-        {(preferences.keywords.length > 0 ? preferences.keywords : researchKeywords).slice(0, 8).map((keyword) => (
-          <div key={keyword} className="rounded-[8px] border border-line bg-white px-4 py-3 text-sm font-black text-ink/74">
-            {keyword}
-          </div>
-        ))}
       </section>
 
       <section className="space-y-6">
@@ -113,7 +94,7 @@ export default async function Home() {
           </div>
           <div className="grid gap-5">
             {fallbackProjects.slice(0, 2).map((project) => (
-              <ProjectCard key={project.id} project={project} />
+              <ProjectCard key={project.id} project={project} showTopics={false} />
             ))}
           </div>
         </div>
