@@ -34,7 +34,28 @@ export type Paper = {
   publishedAt?: string;
   isFavorite?: boolean;
   note?: PaperNote;
+  semanticScholar?: {
+    paperId?: string;
+    citationCount?: number;
+    influentialCitationCount?: number;
+    venue?: string;
+    url?: string;
+    tldr?: string;
+    openAccessPdf?: string;
+  };
 };
+
+export type HackerNewsStory = {
+  id: number;
+  title: string;
+  url: string;
+  score: number;
+  by: string;
+  descendants: number;
+  time: number;
+};
+
+export type SourceStatus = "live" | "fallback" | "limited";
 
 export type TechProject = {
   id: string;
@@ -54,9 +75,12 @@ export type RadarSummary = {
   papers: Paper[];
   projects: TechProject[];
   signals: string[];
+  hackerNews: HackerNewsStory[];
   sourceHealth: {
-    arxiv: "live" | "fallback";
-    github: "live" | "fallback";
+    arxiv: SourceStatus;
+    github: SourceStatus;
+    semanticScholar: SourceStatus;
+    hackerNews: SourceStatus;
   };
 };
 

@@ -9,8 +9,12 @@ import { researchKeywords } from "@/lib/data";
 const sources = [
   { name: "arXiv AI/RAG", kind: "Paper API", status: "enabled" },
   { name: "GitHub Search", kind: "Repository API", status: "enabled" },
-  { name: "Semantic Scholar", kind: "Metadata API", status: "reserved" },
-  { name: "Hacker News", kind: "Tech Feed", status: "reserved" }
+  {
+    name: "Semantic Scholar",
+    kind: "Metadata API",
+    status: process.env.SEMANTIC_SCHOLAR_API_KEY ? "enabled" : "limited"
+  },
+  { name: "Hacker News", kind: "Tech Feed", status: "enabled" }
 ];
 
 export const dynamic = "force-dynamic";

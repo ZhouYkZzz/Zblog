@@ -208,9 +208,12 @@ export const fallbackRadarSummary: RadarSummary = {
     "Agent 项目更关注工具调用稳定性、观察结果处理和失败恢复。",
     "向量数据库和 rerank 模型适合作为研一阶段的工程实践入口。"
   ],
+  hackerNews: [],
   sourceHealth: {
     arxiv: "fallback",
-    github: "fallback"
+    github: "fallback",
+    semanticScholar: "fallback",
+    hackerNews: "fallback"
   }
 };
 

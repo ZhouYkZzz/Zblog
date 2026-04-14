@@ -33,6 +33,12 @@ export default async function RadarPage() {
             <Tag tone={summary.sourceHealth.github === "live" ? "green" : "gold"}>
               GitHub {summary.sourceHealth.github}
             </Tag>
+            <Tag tone={summary.sourceHealth.semanticScholar === "live" ? "green" : "gold"}>
+              Semantic Scholar {summary.sourceHealth.semanticScholar}
+            </Tag>
+            <Tag tone={summary.sourceHealth.hackerNews === "live" ? "green" : "gold"}>
+              Hacker News {summary.sourceHealth.hackerNews}
+            </Tag>
           </div>
         </div>
       </div>
