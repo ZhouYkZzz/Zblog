@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { FormEvent, KeyboardEvent, ReactNode } from "react";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -39,14 +40,218 @@ function normalizeDatetimeInput(value?: string) {
   return offsetDate.toISOString().slice(0, 16);
 }
 
+function renderInlineMarkdown(text: string) {
+  const nodes: ReactNode[] = [];
+  const pattern = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\(https?:\/\/[^)\s]+\))/g;
+  let lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = pattern.exec(text)) !== null) {
+    if (match.index > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index));
+    }
+
+    const token = match[0];
+
+    if (token.startsWith("**")) {
+      nodes.push(
+        <strong key={`${token}-${match.index}`} className="font-black text-ink">
+          {token.slice(2, -2)}
+        </strong>
+      );
+    } else if (token.startsWith("`")) {
+      nodes.push(
+        <code key={`${token}-${match.index}`} className="rounded-[6px] bg-cloud px-1.5 py-0.5 font-mono text-[0.92em] text-pine">
+          {token.slice(1, -1)}
+        </code>
+      );
+    } else {
+      const linkMatch = token.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/);
+
+      if (linkMatch) {
+        nodes.push(
+          <a
+            key={`${token}-${match.index}`}
+            href={linkMatch[2]}
+            target="_blank"
+            rel="noreferrer"
+            className="font-bold text-pine underline underline-offset-4"
+          >
+            {linkMatch[1]}
+          </a>
+        );
+      } else {
+        nodes.push(token);
+      }
+    }
+
+    lastIndex = match.index + token.length;
+  }
+
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex));
+  }
+
+  return nodes.length > 0 ? nodes : text;
+}
+
+function renderList(lines: string[], ordered: boolean, key: string) {
+  const ListTag = ordered ? "ol" : "ul";
+
+  return (
+    <ListTag key={key} className={`${ordered ? "list-decimal" : "list-disc"} space-y-1 pl-5`}>
+      {lines.map((line, index) => {
+        const checklistMatch = line.match(/^[-*]\s+\[( |x|X)\]\s+(.+)$/);
+        const orderedMatch = line.match(/^\d+\.\s+(.+)$/);
+        const bulletMatch = line.match(/^[-*]\s+(.+)$/);
+        const content = checklistMatch?.[2] ?? orderedMatch?.[1] ?? bulletMatch?.[1] ?? line;
+
+        return (
+          <li key={`${key}-${index}`} className={checklistMatch ? "list-none" : undefined}>
+            {checklistMatch ? (
+              <span className="flex gap-2">
+                <input type="checkbox" checked={checklistMatch[1].toLowerCase() === "x"} readOnly className="mt-1" />
+                <span>{renderInlineMarkdown(content)}</span>
+              </span>
+            ) : (
+              renderInlineMarkdown(content)
+            )}
+          </li>
+        );
+      })}
+    </ListTag>
+  );
+}
+
+function MarkdownMessage({ content }: { content: string }) {
+  const lines = content.split("\n");
+  const blocks: ReactNode[] = [];
+  let index = 0;
+
+  while (index < lines.length) {
+    const line = lines[index];
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      index += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith("```")) {
+      const codeLines: string[] = [];
+      index += 1;
+
+      while (index < lines.length && !lines[index].trim().startsWith("```")) {
+        codeLines.push(lines[index]);
+        index += 1;
+      }
+
+      index += 1;
+      blocks.push(
+        <pre key={`code-${index}`} className="overflow-x-auto rounded-[8px] bg-ink p-3 text-xs leading-5 text-white">
+          <code>{codeLines.join("\n")}</code>
+        </pre>
+      );
+      continue;
+    }
+
+    if (/^---+$/.test(trimmed)) {
+      blocks.push(<hr key={`hr-${index}`} className="border-line" />);
+      index += 1;
+      continue;
+    }
+
+    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const className =
+        level === 1
+          ? "text-lg font-black text-ink"
+          : level === 2
+            ? "text-base font-black text-ink"
+            : "text-sm font-black text-ink";
+
+      blocks.push(
+        <div key={`heading-${index}`} className={className}>
+          {renderInlineMarkdown(headingMatch[2])}
+        </div>
+      );
+      index += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith(">")) {
+      const quoteLines: string[] = [];
+
+      while (index < lines.length && lines[index].trim().startsWith(">")) {
+        quoteLines.push(lines[index].trim().replace(/^>\s?/, ""));
+        index += 1;
+      }
+
+      blocks.push(
+        <blockquote key={`quote-${index}`} className="border-l-4 border-pine/40 pl-3 text-ink/68">
+          {quoteLines.map((quote, quoteIndex) => (
+            <p key={`quote-line-${quoteIndex}`}>{renderInlineMarkdown(quote)}</p>
+          ))}
+        </blockquote>
+      );
+      continue;
+    }
+
+    if (/^[-*]\s+(\[[ xX]\]\s+)?/.test(trimmed) || /^\d+\.\s+/.test(trimmed)) {
+      const listLines: string[] = [];
+      const ordered = /^\d+\.\s+/.test(trimmed);
+
+      while (
+        index < lines.length &&
+        (/^[-*]\s+(\[[ xX]\]\s+)?/.test(lines[index].trim()) || (ordered && /^\d+\.\s+/.test(lines[index].trim())))
+      ) {
+        listLines.push(lines[index].trim());
+        index += 1;
+      }
+
+      blocks.push(renderList(listLines, ordered, `list-${index}`));
+      continue;
+    }
+
+    const paragraphLines: string[] = [];
+
+    while (
+      index < lines.length &&
+      lines[index].trim() &&
+      !lines[index].trim().startsWith("```") &&
+      !/^---+$/.test(lines[index].trim()) &&
+      !/^(#{1,3})\s+/.test(lines[index].trim()) &&
+      !lines[index].trim().startsWith(">") &&
+      !/^[-*]\s+(\[[ xX]\]\s+)?/.test(lines[index].trim()) &&
+      !/^\d+\.\s+/.test(lines[index].trim())
+    ) {
+      paragraphLines.push(lines[index]);
+      index += 1;
+    }
+
+    blocks.push(
+      <p key={`paragraph-${index}`} className="whitespace-pre-wrap">
+        {renderInlineMarkdown(paragraphLines.join("\n"))}
+      </p>
+    );
+  }
+
+  return <div className="space-y-3">{blocks}</div>;
+}
+
 export function AiAssistant() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
+  const [streaming, setStreaming] = useState(false);
   const [status, setStatus] = useState("可以开始对话。");
   const [todoDrafts, setTodoDrafts] = useState<TodoDraft[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const stoppedRef = useRef(false);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({
@@ -97,11 +302,16 @@ export function AiAssistant() {
     setMessages(nextMessages);
     setInput("");
     setBusy(true);
+    setStreaming(true);
     setStatus(mode === "radar-papers" ? "正在读取信息雷达并流式生成中文介绍..." : "正在流式回复...");
+    stoppedRef.current = false;
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
     try {
       const response = await fetch("/api/assistant/chat", {
         method: "POST",
+        signal: abortController.signal,
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mode,
@@ -117,6 +327,11 @@ export function AiAssistant() {
       await readStreamingResponse(response, assistantIndex);
       setStatus("回复完成。");
     } catch (error) {
+      if (stoppedRef.current || (error instanceof DOMException && error.name === "AbortError")) {
+        setStatus("已停止输出。");
+        return;
+      }
+
       setMessages((current) =>
         current.map((message, index) =>
           index === assistantIndex
@@ -129,8 +344,23 @@ export function AiAssistant() {
       );
       setStatus("请求失败，请检查 API_KEY 或稍后重试。");
     } finally {
+      if (abortControllerRef.current === abortController) {
+        abortControllerRef.current = null;
+      }
+
       setBusy(false);
+      setStreaming(false);
+      stoppedRef.current = false;
     }
+  }
+
+  function stopGeneration() {
+    stoppedRef.current = true;
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+    setBusy(false);
+    setStreaming(false);
+    setStatus("已停止输出。");
   }
 
   async function extractTodos() {
@@ -275,6 +505,15 @@ export function AiAssistant() {
             >
               生成 Todo 草稿
             </button>
+            {streaming ? (
+              <button
+                type="button"
+                onClick={stopGeneration}
+                className="button-link min-h-9 border border-coral bg-white px-3 text-sm text-coral"
+              >
+                停止输出
+              </button>
+            ) : null}
           </div>
 
           <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto bg-cloud/40 p-4">
@@ -290,7 +529,11 @@ export function AiAssistant() {
                       : "border-line bg-white text-ink/78"
                   }`}
                 >
-                  {message.content || "正在生成..."}
+                  {message.role === "assistant" ? (
+                    message.content ? <MarkdownMessage content={message.content} /> : "正在生成..."
+                  ) : (
+                    message.content
+                  )}
                 </div>
               </div>
             ))}
