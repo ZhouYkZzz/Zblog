@@ -6,6 +6,18 @@ import { getPostBySlugFromStore } from "@/lib/content-store";
 
 export const dynamic = "force-dynamic";
 
+function renderContent(content: string) {
+  return content
+    .split(/\n{2,}/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean)
+    .map((paragraph, index) => (
+      <p key={index} className="whitespace-pre-line">
+        {paragraph}
+      </p>
+    ));
+}
+
 export async function generateMetadata({
   params
 }: {
@@ -53,10 +65,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </div>
         <img src={post.coverImage} alt="" className="max-h-[420px] w-full rounded-[8px] object-cover" />
         <div className="card space-y-5 p-7 text-base leading-8 text-ink/78">
-          <p>{post.content}</p>
-          <p>
-            下一步会把这篇记录连接到论文库、实验日志和组会材料，形成从阅读到产出的闭环。
-          </p>
+          {renderContent(post.content)}
         </div>
       </article>
     </main>
