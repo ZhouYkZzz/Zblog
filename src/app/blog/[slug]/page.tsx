@@ -9,10 +9,10 @@ export const dynamic = "force-dynamic";
 function renderContent(content: string) {
   return content
     .split(/\n{2,}/)
-    .map((paragraph) => paragraph.trim())
-    .filter(Boolean)
+    .map((paragraph) => paragraph.replace(/^\n+|\n+$/g, ""))
+    .filter((paragraph) => paragraph.trim().length > 0)
     .map((paragraph, index) => (
-      <p key={index} className="whitespace-pre-line">
+      <p key={index} className="whitespace-pre-wrap">
         {paragraph}
       </p>
     ));

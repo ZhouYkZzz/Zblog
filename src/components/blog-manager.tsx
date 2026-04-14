@@ -73,6 +73,24 @@ export function BlogManager({ initialPosts }: { initialPosts: BlogPost[] }) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
+  function handleContentKeyDown(event: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== "Tab") {
+      return;
+    }
+
+    event.preventDefault();
+    const target = event.currentTarget;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    const nextContent = `${form.content.slice(0, start)}  ${form.content.slice(end)}`;
+    updateField("content", nextContent);
+
+    window.requestAnimationFrame(() => {
+      target.selectionStart = start + 2;
+      target.selectionEnd = start + 2;
+    });
+  }
+
   async function savePost() {
     if (!form.title.trim()) {
       setStatus("标题不能为空。");
@@ -166,6 +184,7 @@ export function BlogManager({ initialPosts }: { initialPosts: BlogPost[] }) {
             <textarea
               value={form.content}
               onChange={(event) => updateField("content", event.target.value)}
+              onKeyDown={handleContentKeyDown}
               className="min-h-64 rounded-[8px] border border-line bg-white px-3 py-2 font-normal leading-7 outline-none focus:border-pine"
               placeholder="从这里开始写你的博客。"
             />
