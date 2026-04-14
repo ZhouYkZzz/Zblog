@@ -542,14 +542,24 @@ export function AiAssistant() {
               <div className="rounded-[8px] border border-line bg-white p-3">
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-black text-ink">Todo 草稿</p>
-                  <button
-                    type="button"
-                    onClick={writeTodosToReminders}
-                    disabled={busy}
-                    className="button-link button-primary min-h-9 px-3 text-sm"
-                  >
-                    写入 todo
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setTodoDrafts([])}
+                      disabled={busy}
+                      className="button-link button-secondary min-h-9 px-3 text-sm"
+                    >
+                      关闭
+                    </button>
+                    <button
+                      type="button"
+                      onClick={writeTodosToReminders}
+                      disabled={busy}
+                      className="button-link button-primary min-h-9 px-3 text-sm"
+                    >
+                      写入 todo
+                    </button>
+                  </div>
                 </div>
                 <p className="mt-2 text-xs leading-5 text-ink/58">
                   默认只写入事件名称。需要时间或地点时，可以先在这里补充。
