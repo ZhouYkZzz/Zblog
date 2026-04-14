@@ -5,17 +5,19 @@ type AssistantAvatarState = "idle" | "thinking" | "talking";
 export function AssistantAvatar({
   state = "idle",
   size = "md",
-  showBubble = false
+  showBubble = false,
+  className = ""
 }: {
   state?: AssistantAvatarState;
   size?: "sm" | "md";
   showBubble?: boolean;
+  className?: string;
 }) {
   const sizeClass = size === "sm" ? "h-14 w-14" : "h-20 w-20";
   const bubbleText = state === "thinking" ? "..." : state === "talking" ? "AI" : "Z";
 
   return (
-    <span className={`assistant-avatar relative inline-grid shrink-0 place-items-center ${sizeClass}`} data-state={state}>
+    <span className={`assistant-avatar relative inline-grid shrink-0 place-items-center ${sizeClass} ${className}`} data-state={state}>
       <style>{`
         .assistant-avatar .sprite {
           width: 100%;

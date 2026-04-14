@@ -489,7 +489,7 @@ export function AiAssistant() {
         <section className="card flex h-[min(680px,calc(100vh-96px))] w-[min(430px,calc(100vw-40px))] flex-col overflow-hidden bg-white">
           <div className="flex items-start justify-between gap-4 border-b border-line p-4">
             <div className="flex items-start gap-3">
-              <AssistantAvatar state={avatarState} size="sm" showBubble />
+              <AssistantAvatar state={avatarState} size="sm" />
               <div>
                 <p className="text-xs font-black uppercase text-coral">AI Assistant</p>
                 <h2 className="mt-1 text-xl font-black text-ink">ZBlog 小助手</h2>
@@ -639,12 +639,12 @@ export function AiAssistant() {
       <button
         type="button"
         onClick={() => setOpen((current) => !current)}
-        className="flex items-center gap-2 rounded-[8px] border border-pine bg-pine py-2 pl-2 pr-4 text-sm font-black text-white shadow-[0_12px_35px_rgba(24,33,31,0.18)]"
+        aria-label="打开 AI 小助手"
+        className={`group rounded-[8px] border border-line bg-cloud/90 p-2 shadow-[0_12px_35px_rgba(24,33,31,0.14)] backdrop-blur transition-all duration-300 ease-out hover:-translate-y-1 hover:bg-white ${
+          open ? "pointer-events-none translate-y-3 scale-75 opacity-0" : "translate-y-0 scale-100 opacity-100"
+        }`}
       >
-        <span className="rounded-[8px] bg-white/94 p-0.5">
-          <AssistantAvatar state={avatarState} size="sm" />
-        </span>
-        <span>AI 小助手</span>
+        <AssistantAvatar state={avatarState} size="sm" className="transition-transform duration-300 group-hover:scale-105" />
       </button>
     </div>
   );
