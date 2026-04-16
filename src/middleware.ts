@@ -12,14 +12,20 @@ function isWriteApi(pathname: string, method: string) {
   return pathname.startsWith("/api/") && !authPrefixes.some((prefix) => pathname.startsWith(prefix)) && isWriteMethod(method);
 }
 
+function externalUrl(request: NextRequest, pathname: string) {
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || request.nextUrl.host;
+  const protocol = request.headers.get("x-forwarded-proto") || request.nextUrl.protocol.replace(":", "") || "http";
+  const url = new URL(`${protocol}://${host}`);
+  url.pathname = pathname;
+  return url;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAdmin = await verifyAdminSession(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
 
   if (pathname === "/login" && isAdmin) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    url.search = "";
+    const url = externalUrl(request, "/dashboard");
     return NextResponse.redirect(url);
   }
 
@@ -28,8 +34,7 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ message: "需要管理员登录后才能执行这个操作。" }, { status: 401 });
     }
 
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    const url = externalUrl(request, "/login");
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
