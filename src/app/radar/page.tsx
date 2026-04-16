@@ -1,14 +1,21 @@
+import { cookies } from "next/headers";
 import { ProjectCard } from "@/components/project-card";
 import { RadarPaperList } from "@/components/radar-paper-list";
 import { SectionHeading } from "@/components/section-heading";
 import { Tag } from "@/components/tag";
+import { ADMIN_COOKIE_NAME, verifyAdminSession } from "@/lib/auth";
 import { getPapers } from "@/lib/content-store";
 import { fetchRadarSummary } from "@/lib/radar";
 
 export const dynamic = "force-dynamic";
 
 export default async function RadarPage() {
-  const [summary, libraryPapers] = await Promise.all([fetchRadarSummary(), getPapers()]);
+  const cookieStore = await cookies();
+  const [summary, libraryPapers, isAdmin] = await Promise.all([
+    fetchRadarSummary(),
+    getPapers(),
+    verifyAdminSession(cookieStore.get(ADMIN_COOKIE_NAME)?.value)
+  ]);
   const libraryIds = libraryPapers.flatMap((paper) => [paper.id, paper.externalId].filter(Boolean) as string[]);
   const generatedAt = new Date(summary.generatedAt).toLocaleString("zh-CN", {
     timeZone: "Asia/Shanghai",
@@ -51,7 +58,7 @@ export default async function RadarPage() {
         ))}
       </section>
 
-      <RadarPaperList papers={summary.papers} initialLibraryIds={libraryIds} />
+      <RadarPaperList papers={summary.papers} initialLibraryIds={libraryIds} isAdmin={isAdmin} />
 
       <section className="space-y-6">
         <h2 className="text-3xl font-black text-ink">热门项目</h2>

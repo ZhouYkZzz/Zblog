@@ -5,11 +5,10 @@ const navItems = [
   { href: "/blog", label: "博客" },
   { href: "/papers", label: "论文库" },
   { href: "/radar", label: "信息雷达" },
-  { href: "/dashboard", label: "工作台" },
   { href: "/about", label: "关于" }
 ];
 
-export function SiteHeader() {
+export function SiteHeader({ isAdmin = false }: { isAdmin?: boolean }) {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-cloud/88 backdrop-blur">
       <div className="page-shell flex min-h-16 items-center justify-between gap-5">
@@ -29,6 +28,22 @@ export function SiteHeader() {
               {item.label}
             </Link>
           ))}
+          {isAdmin ? (
+            <>
+              <Link href="/dashboard" className="rounded-[8px] px-3 py-2 transition hover:bg-white hover:text-pine">
+                工作台
+              </Link>
+              <form action="/api/auth/logout" method="post">
+                <button type="submit" className="rounded-[8px] px-3 py-2 transition hover:bg-white hover:text-pine">
+                  退出
+                </button>
+              </form>
+            </>
+          ) : (
+            <Link href="/login" className="rounded-[8px] px-3 py-2 transition hover:bg-white hover:text-pine">
+              管理登录
+            </Link>
+          )}
         </nav>
       </div>
     </header>

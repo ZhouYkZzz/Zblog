@@ -6,13 +6,17 @@ import { PaperCard } from "./paper-card";
 
 export function RadarPaperList({
   papers,
-  initialLibraryIds
+  initialLibraryIds,
+  isAdmin = false
 }: {
   papers: Paper[];
   initialLibraryIds: string[];
+  isAdmin?: boolean;
 }) {
   const [libraryIds, setLibraryIds] = useState(initialLibraryIds);
-  const [status, setStatus] = useState("看到值得长期阅读的论文，可以加入论文库。");
+  const [status, setStatus] = useState(
+    isAdmin ? "看到值得长期阅读的论文，可以加入论文库。" : "展示端为只读模式，登录管理端后可以加入论文库。"
+  );
   const librarySet = useMemo(() => new Set(libraryIds), [libraryIds]);
 
   function isInLibrary(paper: Paper) {
@@ -55,6 +59,7 @@ export function RadarPaperList({
               paper={paper}
               compact
               action={
+                isAdmin ? (
                 <button
                   type="button"
                   onClick={() => addToLibrary(paper)}
@@ -65,6 +70,7 @@ export function RadarPaperList({
                 >
                   {saved ? "已加入论文库" : "加入论文库"}
                 </button>
+                ) : null
               }
             />
           );

@@ -74,6 +74,15 @@ todos.forEach((todo) => {
 }
 
 export async function POST(request: Request) {
+  if (process.env.ENABLE_MAC_REMINDERS !== "true" || process.platform !== "darwin") {
+    return NextResponse.json(
+      {
+        message: "服务器部署暂时不启用写入 Mac 提醒事项。"
+      },
+      { status: 501 }
+    );
+  }
+
   const input = (await request.json()) as ReminderRequest;
   const todos = normalizeTodos(input.todos);
 
