@@ -17,7 +17,10 @@ export async function middleware(request: NextRequest) {
   const isAdmin = await verifyAdminSession(request.cookies.get(ADMIN_COOKIE_NAME)?.value);
 
   if (pathname === "/login" && isAdmin) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+    const url = request.nextUrl.clone();
+    url.pathname = "/dashboard";
+    url.search = "";
+    return NextResponse.redirect(url);
   }
 
   if (!isAdmin && (isProtectedPath(pathname) || isWriteApi(pathname, request.method))) {
@@ -25,7 +28,8 @@ export async function middleware(request: NextRequest) {
       return NextResponse.json({ message: "需要管理员登录后才能执行这个操作。" }, { status: 401 });
     }
 
-    const url = new URL("/login", request.url);
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }
